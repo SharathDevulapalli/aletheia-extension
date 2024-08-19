@@ -33,13 +33,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateView(period) {
         chrome.storage.local.get('websites', function(data) {
-            const websites = data.websites || {};
+            const websites = data.websites || [];
             let totalTime = 0;
             let totalVisits = 0;
             let rows = '';
 
-            Object.keys(websites).forEach(domain => {
-                const site = websites[domain];
+            // Convert websites object to an array and sort by timeSpent
+            const sortedWebsites = Object.entries(websites).sort((a, b) => {
+                return b[1].timeSpent - a[1].timeSpent;
+            });
+
+            sortedWebsites.forEach(([domain, site]) => {
                 const timeSpent = convertMillisecondsToMinutes(site.timeSpent);
                 totalTime += timeSpent;
                 totalVisits += site.visits;
@@ -53,16 +57,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 `;
             });
 
-            // Calculate and display average time
-            const averageTime = totalTime / Object.keys(websites).length;
-            averageTimeElement.textContent = formatTime(averageTime * 60000); // converting back to milliseconds for formatting
+            // Calculate and display the total time spent
+            const hours = Math.floor(totalTime / 60);  // Convert total minutes to hours
+            const minutes = totalTime % 60;  // Get the remaining minutes
+            averageTimeElement.textContent = `${hours}h ${minutes}m`;
 
-            // Change indicator (dummy calculation, needs logic to compare with previous period)
-            changeIndicatorElement.textContent = '- 0% from last period';
+            // Calculate and display percentage change from last period (placeholder logic)
+            const previousTotalTime = 0; // Replace this with actual data from the previous period
+            const percentageChange = calculatePercentageChange(totalTime, previousTotalTime);
+            changeIndicatorElement.textContent = `- ${percentageChange}% from last period`;
 
-            // Populate table
+            // Populate table with detailed usage
             websiteTableBody.innerHTML = rows;
         });
+    }
+
+    // Helper function to calculate percentage change
+    function calculatePercentageChange(current, previous) {
+        if (previous === 0) return 0;  // Avoid division by zero
+        return (((current - previous) / previous) * 100).toFixed(2);
     }
 
     // Helper function to capitalize the first letter of the period
@@ -73,14 +86,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Helper function to convert milliseconds to minutes
     function convertMillisecondsToMinutes(milliseconds) {
         return Math.round(milliseconds / 60000);
-    }
-
-    // Helper function to format time from minutes to "xh ym"
-    function formatTime(milliseconds) {
-        let totalMinutes = Math.floor(milliseconds / 60000);
-        let hours = Math.floor(totalMinutes / 60);
-        let minutes = totalMinutes % 60;
-        return `${hours}h ${minutes}m`;
     }
 
     // Initialize view with the default period
