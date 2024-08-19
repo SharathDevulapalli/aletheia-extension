@@ -1,5 +1,12 @@
 let websites = {};
 
+// Load previously stored data when the extension starts
+chrome.storage.local.get('websites', (result) => {
+    if (result.websites) {
+        websites = result.websites;
+    }
+});
+
 // Listen for when a tab is updated (e.g., a new page is loaded)
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === 'complete') {
@@ -32,6 +39,7 @@ function trackWebsite(tab) {
 
         const now = new Date().getTime();
 
+        // Initialize domain data if it doesn't exist
         if (!websites[domain]) {
             websites[domain] = {
                 visits: 0,
@@ -41,28 +49,42 @@ function trackWebsite(tab) {
         }
 
         const site = websites[domain];
-        site.visits += 1;
         const lastVisitTime = site.lastVisit;
-        site.timeSpent += now - lastVisitTime;
+
+        // Only add to timeSpent if lastVisitTime is valid
+        if (lastVisitTime) {
+            site.timeSpent += now - lastVisitTime;
+        }
+
+        site.visits += 1;
         site.lastVisit = now;
 
+        // Save the updated data to chrome.storage.local
         chrome.storage.local.set({ websites });
     } catch (e) {
         console.error('Error processing URL:', tab.url, e);
     }
 }
 
-
 // Optional: Handle when the browser is closed or a window is unfocused
 chrome.windows.onFocusChanged.addListener(windowId => {
     if (windowId === chrome.windows.WINDOW_ID_NONE) {
         // The window lost focus (user switched to a different application)
-        Object.keys(websites).forEach(domain => {
-            const now = new Date().getTime();
-            const site = websites[domain];
-            const lastVisitTime = site.lastVisit;
-            site.timeSpent += now - lastVisitTime;
-            site.lastVisit = now;
-        });
+        updateTimeSpent();
     }
 });
+
+// Update time spent on all websites when focus is lost
+function updateTimeSpent() {
+    const now = new Date().getTime();
+    Object.keys(websites).forEach(domain => {
+        const site = websites[domain];
+        const lastVisitTime = site.lastVisit;
+        if (lastVisitTime) {
+            site.timeSpent += now - lastVisitTime;
+            site.lastVisit = now;
+        }
+    });
+    // Save the updated data to chrome.storage.local
+    chrome.storage.local.set({ websites });
+}
