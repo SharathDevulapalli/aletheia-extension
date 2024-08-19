@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usage Report</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Usage Report</h1>
+            <div class="time-selection">
+                <button id="dayView">Day</button>
+                <button id="weekView" class="active">Week</button>
+                <button id="monthView">Month</button>
+                <button id="quarterView">Quarter</button>
+                <button id="yearView">Year</button>
+            </div>
+        </header>
+
+        <section class="summary">
+            <h2>Last <span id="selectedPeriod">Week</span></h2>
+            <div class="average-time">
+                <span id="averageTime">0h 0m</span>
+                <span id="changeIndicator">- 0% from last period</span>
+            </div>
+        </section>
+
+        <!-- Enhanced Detailed Usage Section -->
+        <section class="website-list">
+            <h2>Detailed Usage</h2>
+            <table id="websiteTable">
+                <thead>
+                    <tr>
+                        <th>Website</th>
+                        <th>Time Spent (Minutes)</th>
+                        <th>Visits</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Websites will be dynamically populated here -->
+                </tbody>
+            </table>
+        </section>
+    </div>
+
+    <!-- Include the report.js script -->
+    <script src="report.js"></script>
+</body>
+</html>
